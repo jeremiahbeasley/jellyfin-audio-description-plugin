@@ -2,70 +2,46 @@ name: Build & Release
 
 on:
   push:
-    branches: [main]
-    tags:
-      - "v*"
-  pull_request:
-    branches: [main]
-  workflow_dispatch:   # lets you trigger a build manually from the GitHub UI
+    branches: [ main ]
+    tags: [ 'v*' ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up .NET 8
-        uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: "8.0.x"
-
-      - name: Restore dependencies
-        run: dotnet restore
-
-      - name: Build (Release)
-        run: dotnet build -c Release --no-restore
-
-      - name: Upload DLL as artifact
-        uses: actions/upload-artifact@v4
+          dotnet-version: '8.0.x'
+      - run: dotnet restore
+      - run: dotnet build --configuration Release --no-restore
+      - uses: actions/upload-artifact@v4
         with:
           name: Jellyfin.Plugin.AudioDescription
-          # Grab the DLL and its immediate dependencies
           path: bin/Release/net8.0/Jellyfin.Plugin.AudioDescription.dll
-          if-no-files-found: error
 
-  # Only runs when you push a version tag (e.g. git tag v1.0.0 && git push --tags)
   release:
-    needs: build
     if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
     runs-on: ubuntu-latest
-
     permissions:
-      contents: write   # needed to create a GitHub Release
-
+      contents: write
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up .NET 8
-        uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: "8.0.x"
-
-      - name: Build (Release)
-        run: dotnet build -c Release
-
-      - name: Zip plugin for release
+          dotnet-version: '8.0.x'
+      - run: dotnet restore
+      - run: dotnet build --configuration Release --no-restore
+      - name: Package and compute checksum
         run: |
-          mkdir -p release
-          cp bin/Release/net8.0/Jellyfin.Plugin.AudioDescription.dll release/
-          cd release
-          zip ../Jellyfin.Plugin.AudioDescription-${{ github.ref_name }}.zip ./*
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+          mkdir -p dist
+          zip -j dist/Jellyfin.Plugin.AudioDescription-${{ github.ref_name }}.zip bin/Release/net8.0/Jellyfin.Plugin.AudioDescription.dll
+          MD5=$(md5sum dist/Jellyfin.Plugin.AudioDescription-${{ github.ref_name }}.zip | awk '{print toupper($1)}')
+          echo "MD5_CHECKSUM=$MD5" >> $GITHUB_ENV
+          echo "::notice::MD5 checksum: $MD5"
+      - uses: softprops/action-gh-release@v2
         with:
-          files: Jellyfin.Plugin.AudioDescription-${{ github.ref_name }}.zip
-          generate_release_notes: true
+          files: dist/Jellyfin.Plugin.AudioDescription-${{ github.ref_name }}.zip
+          body: |
+            MD5 checksum: ${{ env.MD5_CHECKSUM }}
