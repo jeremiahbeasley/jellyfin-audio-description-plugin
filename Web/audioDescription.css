@@ -1,0 +1,158 @@
+/*
+ * Jellyfin Audio Description Badge Plugin â Stylesheet
+ *
+ * WCAG 2.2 compliance notes
+ * âââââââââââââââââââââââââ
+ * SC 1.4.1  Use of Colour        : Badge carries text "AD" + icon, never colour alone.
+ * SC 1.4.3  Contrast (Minimum)   : #FFFFFF on #00538C = 7.5:1  â (â¥ 4.5:1 required)
+ * SC 1.4.4  Resize Text          : em/rem units; badge reflows with user font size.
+ * SC 1.4.11 Non-text Contrast    : Badge border/background vs card = 3:1+ â
+ * SC 2.3.3  Animation            : prefers-reduced-motion respected.
+ * SC 1.4.12 Text Spacing         : No fixed heights that clip text on spacing change.
+ * Forced Colors / Windows HCM    : forced-color-adjust rule ensures badge visible.
+ */
+
+/* ââ Badge container âââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
+
+.audio-description-badge {
+  position: absolute;
+  z-index: 10;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25em;
+
+  /* Spacing uses em so it scales with user font-size (SC 1.4.4) */
+  padding: 0.2em 0.45em;
+  border-radius: 0.3em;
+
+  /*
+   * Colour palette
+   * Background: #00538C  (WCAG large-text ratio vs white: 7.5:1)
+   * Foreground: #FFFFFF
+   * This exceeds SC 1.4.3 (4.5:1) and SC 1.4.6 Enhanced (7:1).
+   */
+  background-color: #00538C;
+  color: #ffffff;
+
+  /*
+   * SC 1.4.11 Non-text Contrast: the badge boundary must achieve â¥3:1 against
+   * adjacent colours. Because Jellyfin cards show variable movie-poster images,
+   * we cannot guarantee the background colour. A double-ring box-shadow is used:
+   *   inner ring (#ffffff): â¥3:1 against dark poster backgrounds
+   *   outer ring (#000000): â¥3:1 against light poster backgrounds
+   * Together they ensure the badge boundary is always distinguishable.
+   */
+  box-shadow: 0 0 0 1.5px #ffffff, 0 0 0 3px #000000;
+
+  font-family: inherit;
+  font-size: 0.7rem;   /* rem so user's root font-size applies */
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+
+  /* Badge is decorative on a focusable card; don't steal pointer events */
+  pointer-events: none;
+  user-select: none;
+
+  /* Entrance animation */
+  opacity: 0;
+  animation: ad-badge-fadein 0.18s ease-out forwards;
+}
+
+@keyframes ad-badge-fadein {
+  from { opacity: 0; transform: scale(0.9); }
+  to   { opacity: 1; transform: scale(1);   }
+}
+
+/* Respect reduced-motion (WCAG 2.2 SC 2.3.3 / 2.3.2) */
+@media (prefers-reduced-motion: reduce) {
+  .audio-description-badge {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ââ Corner positions ââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
+
+.audio-description-badge.ad-badge--topleft {
+  top: 0.4em;
+  left: 0.4em;
+}
+
+.audio-description-badge.ad-badge--topright {
+  top: 0.4em;
+  right: 0.4em;
+}
+
+.audio-description-badge.ad-badge--bottomleft {
+  bottom: 0.4em;
+  left: 0.4em;
+}
+
+.audio-description-badge.ad-badge--bottomright {
+  bottom: 0.4em;
+  right: 0.4em;
+}
+
+/* Default position when no modifier is present */
+.audio-description-badge:not([class*="ad-badge--"]) {
+  top: 0.4em;
+  left: 0.4em;
+}
+
+/* ââ Icon (SVG inside badge) âââââââââââââââââââââââââââââââââââââââââââââââ */
+
+.audio-description-badge svg {
+  /* Inherit colour so icon matches text */
+  fill: currentColor;
+  flex-shrink: 0;
+  /* Size relative to badge font so it scales with user prefs */
+  width: 1em;
+  height: 1em;
+}
+
+/* ââ Text label ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
+
+.ad-badge__label {
+  /* Explicit display so the text spacing SC 1.4.12 check passes:
+     no overflow:hidden or fixed height here */
+  display: inline;
+}
+
+/* ââ Dark-mode: already fine (dark background + white text) âââââââââââââââ */
+/* Jellyfin is dark-first; no separate dark-mode block needed.               */
+
+/* ââ Forced-colors / Windows High Contrast Mode (SC 1.4.11) âââââââââââââââ */
+@media (forced-colors: active) {
+  .audio-description-badge {
+    background-color: Highlight;
+    color: HighlightText;
+    /* Explicit border ensures the badge boundary is visible at 3:1+ */
+    outline: 2px solid ButtonText;
+    forced-color-adjust: none;
+  }
+}
+
+/* ââ Focus-visible on parent card â do not dim badge ââââââââââââââââââââââ */
+/*
+ * Jellyfin's card anchor receives :focus-visible; we make sure our badge
+ * isn't accidentally hidden by any outline/overlay the theme may apply.
+ */
+.card:focus-visible .audio-description-badge,
+.cardBox:focus-visible .audio-description-badge {
+  opacity: 1;
+}
+
+/* ââ Print âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
+@media print {
+  .audio-description-badge {
+    /* Print in black & white with a border for contrast */
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
