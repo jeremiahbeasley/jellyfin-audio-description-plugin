@@ -1,1 +1,20 @@
-<Project Sdk="Microsoft.NET.Sdk">  <PropertyGroup>    <TargetFramework>net8.0</TargetFramework>    <AssemblyName>Jellyfin.Plugin.AudioDescription</AssemblyName>    <RootNamespace>Jellyfin.Plugin.AudioDescription</RootNamespace>    <GenerateDocumentationFile>true</GenerateDocumentationFile>    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>    <Nullable>enable</Nullable>    <AnalysisMode>AllEnabledByDefault</AnalysisMode>  </PropertyGroup>  <ItemGroup>    <PackageReference Include="Jellyfin.Model" Version="10.9.0" />    <PackageReference Include="Jellyfin.Controller" Version="10.9.0" />    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.1" />  </ItemGroup>  <!-- Bundle web assets into the output dll's directory -->  <ItemGroup>    <EmbeddedResource Include="Web\**\*" />  </ItemGroup></Project>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>Jellyfin.Plugin.AudioDescription</AssemblyName>
+    <RootNamespace>Jellyfin.Plugin.AudioDescription</RootNamespace>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Jellyfin.Model" Version="10.9.0" />
+    <PackageReference Include="Jellyfin.Controller" Version="10.9.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.1" />
+  </ItemGroup>
+
+  <!-- Bundle web assets into the output dll's directory -->
+  <ItemGroup>
+    <EmbeddedResource Include="Web\**\*" />
+  </ItemGroup>
+</Project>
