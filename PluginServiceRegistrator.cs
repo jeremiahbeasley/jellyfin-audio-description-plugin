@@ -1,5 +1,5 @@
-using Jellyfin.Plugin.AudioDescription.Api;
-using MediaBrowser.Common.Plugins;
+using MediaBrowser.Controller;
+using MediaBrowser.Controller.Plugins;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Jellyfin.Plugin.AudioDescription;
@@ -10,10 +10,10 @@ namespace Jellyfin.Plugin.AudioDescription;
 public class PluginServiceRegistrator : IPluginServiceRegistrator
 {
     /// <inheritdoc />
-    public void RegisterServices(IServiceCollection serviceCollection, IServiceProvider applicationServiceProvider)
+    public void RegisterServices(IServiceCollection serviceCollection, IServerApplicationHost applicationHost)
     {
         // AudioDescriptionController is picked up automatically by Jellyfin's
-        // controller discovery â no explicit registration needed.
+        // controller discovery — no explicit registration needed.
         // Add any future scoped services here.
     }
 }
