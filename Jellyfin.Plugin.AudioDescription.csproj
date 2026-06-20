@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <AssemblyName>Jellyfin.Plugin.AudioDescription</AssemblyName>
     <RootNamespace>Jellyfin.Plugin.AudioDescription</RootNamespace>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -12,8 +12,7 @@
     <PackageReference Include="Jellyfin.Controller" Version="10.11.2" />
   </ItemGroup>
 
-  <!-- Bundle web assets into the output dll's directory -->
   <ItemGroup>
-    <EmbeddedResource Include="Web\**\*" />
+    <EmbeddedResource Include="Web/**/*" />
   </ItemGroup>
 </Project>
