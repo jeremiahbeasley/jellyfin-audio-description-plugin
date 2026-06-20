@@ -30,7 +30,7 @@ public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
     public override string Name => "Audio Description Badges";
 
     /// <inheritdoc />
-    public override Guid Id => Guid.Parse("a1b2c3d4-e5f6-7890-abcd-ef1234567890");
+    public override Guid Id => Guid.Parse("3c8f7e2a-d4b9-4e6f-a1c5-8d9e0b7a6c4d");
 
     /// <inheritdoc />
     public override string Description =>
