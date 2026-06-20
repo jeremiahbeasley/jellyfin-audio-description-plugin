@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Audio Description Badges — Configuration</title>
+<title>Audio Description Badges</title>
 <style>
 :root {
 --color-bg: #101010;
@@ -52,7 +52,9 @@ button:focus-visible { outline: var(--focus-outline); outline-offset: var(--focu
 </style>
 </head>
 <body>
-<main>
+<div id="AudioDescriptionBadgesConfigPage" data-role="page" class="page hide">
+<div data-role="content">
+<div class="content-primary">
 <h1>Audio Description Badges</h1>
 <p class="page-desc">Displays an accessible badge on library cards for media that includes an Audio Description audio track. All badge variants meet WCAG 2.2 contrast requirements.</p>
 <form id="configForm" novalidate aria-label="Plugin configuration">
@@ -99,7 +101,9 @@ button:focus-visible { outline: var(--focus-outline); outline-offset: var(--focu
 </div>
 <p id="statusMsg" role="status" aria-live="polite" aria-atomic="true"></p>
 </form>
-</main>
+</div>
+</div>
+</div>
 <script>
 (function () {
 "use strict";
