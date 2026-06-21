@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Jellyfin.Plugin.AudioDescription.Configuration;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
@@ -106,13 +107,42 @@ public class AudioDescriptionController : ControllerBase
         };
     }
 
+    /// <summary>
+    /// Serves the embedded badge script to the web client. Anonymous because a
+    /// plain <c>&lt;script src&gt;</c> tag cannot send a Jellyfin auth token.
+    /// </summary>
+    [HttpGet("audioDescription.js")]
+    [AllowAnonymous]
+    [Produces("application/javascript")]
+    public ActionResult GetScript() => ServeEmbedded("Web.audioDescription.js", "application/javascript");
+
+    /// <summary>
+    /// Serves the embedded badge stylesheet to the web client.
+    /// </summary>
+    [HttpGet("audioDescription.css")]
+    [AllowAnonymous]
+    [Produces("text/css")]
+    public ActionResult GetStylesheet() => ServeEmbedded("Web.audioDescription.css", "text/css");
+
+    private ActionResult ServeEmbedded(string resourceName, string contentType)
+    {
+        var stream = typeof(Plugin).Assembly
+            .GetManifestResourceStream($"{typeof(Plugin).Namespace}.{resourceName}");
+        if (stream is null)
+        {
+            return NotFound();
+        }
+
+        return File(stream, contentType);
+    }
+
     private static bool MatchesKeyword(MediaStream stream, string[] keywords)
     {
         foreach (var kw in keywords)
         {
-            if (Contains(stream.Title, kw)
-                || Contains(stream.DisplayTitle, kw)
-                || Contains(stream.Language, kw))
+            if (MatchesWord(stream.Title, kw)
+                || MatchesWord(stream.DisplayTitle, kw)
+                || MatchesWord(stream.Language, kw))
             {
                 return true;
             }
@@ -121,7 +151,18 @@ public class AudioDescriptionController : ControllerBase
         return false;
     }
 
-    private static bool Contains(string? source, string value)
-        => source is not null
-           && source.Contains(value, StringComparison.OrdinalIgnoreCase);
+    // Whole-word, case-insensitive match. Word boundaries (not a raw substring)
+    // stop short keywords like "AD"/"VI" from matching inside ordinary words —
+    // e.g. "AD" must not match "Brad" in a commentary credit, and "VI" must not
+    // match "movie" or the language code "vie". A standalone "AD" token still matches.
+    private static bool MatchesWord(string? source, string value)
+    {
+        if (string.IsNullOrEmpty(source) || string.IsNullOrEmpty(value))
+        {
+            return false;
+        }
+
+        var pattern = $"\\b{Regex.Escape(value)}\\b";
+        return Regex.IsMatch(source, pattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+    }
 }

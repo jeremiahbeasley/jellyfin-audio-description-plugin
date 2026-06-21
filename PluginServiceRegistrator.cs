@@ -1,5 +1,7 @@
+using Jellyfin.Plugin.AudioDescription.Injection;
 using MediaBrowser.Controller;
 using MediaBrowser.Controller.Plugins;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Jellyfin.Plugin.AudioDescription;
@@ -14,6 +16,10 @@ public class PluginServiceRegistrator : IPluginServiceRegistrator
     {
         // AudioDescriptionController is picked up automatically by Jellyfin's
         // controller discovery — no explicit registration needed.
-        // Add any future scoped services here.
+
+        // Self-contained UI injection: run our own response-rewriting middleware
+        // (no dependency on the File Transformation plugin) to add the badge
+        // CSS/JS to the web client's index.html.
+        serviceCollection.AddSingleton<IStartupFilter, InjectionStartupFilter>();
     }
 }

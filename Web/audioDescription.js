@@ -54,12 +54,27 @@
     scheduleCardScan();
   }
 
+  // Jellyfin's /Config and /Check endpoints require auth. Prefer the web
+  // client's ApiClient (it attaches the access token automatically); fall back
+  // to a token-appended fetch in case ApiClient isn't present on the page yet.
+  // A plain fetch with credentials:"same-origin" sends no token and gets 401.
+  function apiGetJson(path) {
+    const rel = path.replace(/^\//, ""); // ApiClient.getUrl expects no leading slash
+    if (typeof ApiClient !== "undefined" && ApiClient.getUrl && ApiClient.ajax) {
+      return ApiClient.ajax({ type: "GET", url: ApiClient.getUrl(rel), dataType: "json" });
+    }
+    const token =
+      typeof ApiClient !== "undefined" && ApiClient.accessToken ? ApiClient.accessToken() : "";
+    const sep = path.includes("?") ? "&" : "?";
+    const url = path + (token ? `${sep}api_key=${encodeURIComponent(token)}` : "");
+    return fetch(url, { credentials: "same-origin" }).then((r) =>
+      r.ok ? r.json() : Promise.reject(new Error("HTTP " + r.status))
+    );
+  }
+
   async function loadConfig() {
     try {
-      const resp = await fetch(`${API_BASE}/Config`, { credentials: "same-origin" });
-      if (resp.ok) {
-        pluginConfig = await resp.json();
-      }
+      pluginConfig = await apiGetJson(`${API_BASE}/Config`);
     } catch (e) {
       console.warn("[AD Badge] Could not load plugin config, using defaults.", e);
     }
@@ -137,13 +152,8 @@
   async function fetchBatch(ids) {
     try {
       const params = new URLSearchParams({ ids: ids.join(",") });
-      const resp = await fetch(`${API_BASE}/Check?${params}`, {
-        credentials: "same-origin",
-      });
-      if (!resp.ok) return;
-
       /** @type {Record<string, string>} */
-      const data = await resp.json();
+      const data = await apiGetJson(`${API_BASE}/Check?${params}`);
 
       // Populate cache: items returned have AD; items not in response do not
       for (const id of ids) {
@@ -170,7 +180,11 @@
     }
 
     const badge = document.createElement("span");
-    badge.className = `${PLUGIN_ID} ad-badge--${pluginConfig.badgePosition}`;
+    // Config delivers the position as the C# enum name (e.g. "TopLeft"); the CSS
+    // corner classes are lowercase (.ad-badge--topleft), and CSS class names are
+    // case-sensitive — so normalise to lowercase or the position never matches.
+    const position = String(pluginConfig.badgePosition || "topleft").toLowerCase();
+    badge.className = `${PLUGIN_ID} ad-badge--${position}`;
 
     // ââ Accessibility ââââââââââââââââââââââââââââââââââââââââââââââââââââââ
     // role="img" turns the span into a perceivable image object for AT.
